@@ -36,7 +36,7 @@ The goals / steps of this project are the following:
 
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
-#### The code and implementation of the solution step by step can be found in the IPython notebook [P4.ipynb](./P4.ipynb).
+#### The code and implementation of the solution step by step can be found in the IPython notebook [P4.ipynb](./P4.ipynb) or the HTML file [P4.html](./P4.html).
 
 ---
 
@@ -53,13 +53,13 @@ You're reading it!
 
 The code for this step is contained in the cells 2 to 6 (including tests) of the IPython notebook located in [P4.ipynb](./P4.ipynb).  
 
-I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  The variable `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image. `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection, this mechanism is implemented in the method `getObjImgPointsAndShape()` and was applied to all the images in the directory `camera_cal`.
+I start by preparing "object points", which will be the (x, y, z) coordinates of the chess board corners in the world. Here I am assuming the chess board is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  The variable `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chess board corners in a test image. `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection, this mechanism is implemented in the method `getObjImgPointsAndShape()` and was applied to all the images in the directory `camera_cal`.
 
 Here is an example of the detection of the chess board corners:
 
 ![alt text][image1]
 
-In the method `calibrateCamera()`, I use `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function, in order to use these values in the further method I created the class `Calibration`.
+In the method `calibrateCamera()`, I use `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function, in order to use these values in the further methods I created the class `Calibration`.
 
 Here are is an example of the application of the distortion correction applied to a chessboard image:
 
@@ -74,13 +74,13 @@ The following is an example of the application of distortion correction to one o
 
 ![alt text][image2]
 
-And this is an example applied to a road image, a little less evident, but looking at the reflection in windshield it can be seen how a curved line is transformed straightened.
+And this is an example applied to a road image, a little less evident, but looking at the reflection in windshield it can be seen how a curved line is straightened.
 
 ![alt text][image3]
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I used a combination of color and gradient thresholds to generate a binary image, first images are converted to HLS color space, the channel S is separated to do a thresholding by color magnitude, to do the gradient thresholding the channel L used and the derivarive applied to it. The code can be found in cells 7 and 8 of [P4.ipynb](./P4.ipynb), specifically the implementation is in the method `getThresholdedBinaryImage`.
+I used a combination of color and gradient thresholds to generate a binary image, first images are converted to HLS color space, the channel S is separated to do a thresholding by color magnitude, to do the gradient thresholding the channel L used and the derivative applied to it. The code can be found in cells 7 and 8 of [P4.ipynb](./P4.ipynb), specifically the implementation is in the method `getThresholdedBinaryImage()`.
 
 Here is an example of the output for this step:
 
@@ -97,54 +97,50 @@ The code of the perspective transform's implementation can be found in cells 9 t
 | 200, 720      | 320, 720      |
 | 1100, 720     | 980, 720      |
 
-This points are plotted in the following image:
+These points are plotted in the following image:
 
 ![alt text][image5]
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+I created a class called `PerspectiveTransform` in order to store the perspective matrix and the inverse perspective matrix, the last one to be used later in the step to draw the identified lane in the image/video. The code for my perspective transform includes a function called `getPerspectiveTransform()` which takes as inputs the source (`src`) and destination (`dst`) points to calculate the perspective matrices and store them in an object of the mentioned class. Additionally they are two methods for warping (rectifying) or unwarping and image using a `PerspectiveTransform` object.
 
-```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-```
-
-
-This resulted in the following source and destination points:
-
-| Source        | Destination   |
-|:-------------:|:-------------:|
-| 585, 460      | 320, 0        |
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
-
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+I verified that my perspective transformation was working as expected by warping an image of a straight road section and verifying that the lines appear parallel in the warped image:
 
 ![alt text][image6]
+
+Also, I verified that the inverse perspective transformation is returning the image to the original state, well, actually just the section surrounding the lane:
+
+![alt text][image7]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+First, I prepare the image by undistorting, applying color/gradient thresholds and warping, the result is a bird-eye like image that is going to be used to detect the lane lines:
 
-![alt text][image5]
+![alt text][image8]
+
+To identify the pixels belonging to the lane lines, I used the method of window fitting given a defined window size of 80x80, and applying convolution to look for the pixels by vertical layers. I also incorporated a look ahead mechanism, if a previously fitted polynomial for a lane line is given, this is used to calculate the initial position on the bottom of the image to start looking for the line pixels.  The code can be found in cells 18 to 20 of [P4.ipynb](./P4.ipynb), the base method is `findWindowCentroids()` which returns the collection of centroids that represent the section corresponding to the line, the following is an example of the lane lines detection process:
+
+![alt text][image10]
+
+The detection mechanism is grouped together with the curvature calculation, and some mechanisms for fault tolerance (like sanity check and buffering previously found lines) further in the code, cells 23 to 26 of [P4.ipynb](./P4.ipynb).
+
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
+Lane curvature determination is implemented in cells 21 and 22 of [P4.ipynb](./P4.ipynb), for calculating the radius of curvature given a second degree polynomial (i.e. the ones used for the lane lines), I applied the following formula in the method `calculateCurvatureOfLaneLine()`, where the polynomial is of the form `x = A * y**2 + B * y + C`:
+```
+c = ((1 + (2 * A * y + B)**2)**1.5) / np.absolute(2 * A)
+```
+The value of `y` was the high of the image multiplied by the ratio of meters per pixel, in order to get the radius of the curvature in meters.
+
+Here is an example for the curvature detection:
+
+![alt text][image11]
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+This is an example plotting back the detected lane into the image (inverse perspective transformation was used for this), the method in charge to do it is `drawFoundLaneOverImage()` which is found in the cell 24 of [P4.ipynb](./P4.ipynb).
 
-![alt text][image6]
+![alt text][image12]
 
 ---
 
@@ -152,7 +148,7 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here's a [link to my video result](./project_video.mp4)
+Here is the [link to my video result](./result.mp4)
 
 ---
 
@@ -160,4 +156,8 @@ Here's a [link to my video result](./project_video.mp4)
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+As suggested during the lessons, I implemented some fault tolerance mechanisms in case that the lane line can not be detected with confidence, these include:
+* Buffering: The last N previous lines are considered and the ones reliably detected are stored in the buffer. This has the objective of providing an approximation in case that the lane in an image can not be detected.
+* Sanity Checking: Used to determine if a lane is "reliably" detected, basically it checks that the retrieved lines are roughly parallel, their separation is around (3.7m the standard for the US highways) and they are not to different to the lines detected before.
+
+There is a couple of sections where the change of color on the pavement and the presence of shadows make it difficult to detect the lines (even for the human eye), in this case the buffer offers a good mechanism to infer the line. I noticed that large buffers compensate the lack of identification better, however that makes less flexible to adapt to changing circumstances like a narrower curve ahead or a bumpy section. So part of the challenge was to find the balance between flexibility and recovering for lack of detection, the amount that seemed to work better was a buffer size of 50.
