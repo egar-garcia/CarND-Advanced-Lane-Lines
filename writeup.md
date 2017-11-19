@@ -148,7 +148,7 @@ This is an example plotting back the detected lane into the image (inverse persp
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here is the [link to my video result](./result.mp4)
+The resulting video is in the file `result.mp4`, here is a [link to the resulting video](./result.mp4).
 
 ---
 
